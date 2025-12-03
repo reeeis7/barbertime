@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BarberTime</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="shortcut icon" href="assets/icone.png" type="image/x-icon" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="logo">
+          <i class="fas fa-cut"></i>
+          <h1>BarberTime</h1>
+        </div>
+        <div class="current-date" id="currentDate"></div>
+      </header>
+
+      <div class="nav-tabs">
+        <div class="tab active" data-target="agendamentos">📅 Agendamentos</div>
+        <div class="tab" data-target="controle">💰 Controle Financeiro</div>
+        <div class="tab" data-target="relatorios">📊 Relatórios</div>
+      </div>
+
+      <!-- Seção de Agendamentos -->
+      <section id="agendamentos" class="content-section active">
+        <h2><i class="fas fa-calendar-plus"></i> Novo Agendamento</h2>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="clienteNome">Nome do Cliente</label>
+            <input
+              type="text"
+              id="clienteNome"
+              placeholder="Digite o nome do cliente"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="clienteTelefone">Telefone</label>
+            <input
+              type="text"
+              id="clienteTelefone"
+              placeholder="(00) 00000-0000"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="servico">Serviço</label>
+            <select id="servico">
+              <option value="Corte|30">Corte - R$30</option>
+              <option value="Barba|25">Barba - R$25</option>
+              <option value="Sobrancelha|15">Sobrancelha - R$15</option>
+              <option value="Corte + Sobrancelha|40">
+                Corte + Sobrancelha - R$40
+              </option>
+              <option value="Corte + Barba|50">Corte + Barba - R$50</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="dataAgendamento">Data</label>
+            <input type="date" id="dataAgendamento" />
+          </div>
+
+          <div class="form-group">
+            <label for="horaAgendamento">Horário</label>
+            <select id="horaAgendamento"></select>
+          </div>
+        </div>
+
+        <button id="btnAgendar" class="btn btn-primary">
+          <i class="fas fa-plus"></i> Agendar Serviço
+        </button>
+
+        <h2 style="margin-top: 40px">
+          <i class="fas fa-calendar-week"></i> Agenda da Semana
+        </h2>
+        
+        <div id="calendarioSemanal" class="calendario-semanal">
+          <!-- Gerado dinamicamente -->
+        </div>
+
+        <h2>
+          <i class="fas fa-list"></i> Agendamentos do Dia
+        </h2>
+
+        <div id="listaAgendamentos">
+          <div class="empty-state">
+            <i class="fas fa-calendar-times"></i>
+            <p>Carregando agendamentos...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Seção de Controle Financeiro -->
+      <section id="controle" class="content-section">
+        <h2><i class="fas fa-money-bill-wave"></i> Controle Financeiro</h2>
+
+        <!-- Controles de Filtro -->
+        <div class="filter-group">
+          <div class="form-group" style="flex: 1; min-width: 250px;">
+            <label for="buscaAgendamentos"><i class="fas fa-search"></i> Buscar</label>
+            <div style="display: flex; gap: 5px;">
+              <input 
+                type="text" 
+                id="buscaAgendamentos" 
+                placeholder="Nome, serviço ou telefone..."
+                style="flex: 1;"
+              />
+              <button class="btn" onclick="filtrarTabela()" title="Buscar">
+                <i class="fas fa-search"></i>
+              </button>
+              <button class="btn" onclick="limparBusca()" title="Limpar busca">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="form-group" style="min-width: 150px;">
+            <label for="filtroData">Data</label>
+            <input type="date" id="filtroData" onchange="filtrarPorData()">
+          </div>
+          
+          <div class="form-group" style="min-width: 150px;">
+            <label for="filtroServico">Serviço</label>
+            <select id="filtroServico" onchange="filtrarPorServico()">
+              <option value="">Todos</option>
+              <option value="Corte">Corte</option>
+              <option value="Barba">Barba</option>
+              <option value="Sobrancelha">Sobrancelha</option>
+              <option value="Corte + Sobrancelha">Corte + Sobrancelha</option>
+              <option value="Corte + Barba">Corte + Barba</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Filtros de Status -->
+        <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+          <span style="color: var(--text-secondary); font-weight: 600;">Status:</span>
+          <button class="btn" onclick="filtrarPorStatus('todos')" id="btnTodos">
+            <i class="fas fa-layer-group"></i> Todos
+          </button>
+          <button class="btn" onclick="filtrarPorStatus('pendente')" id="btnPendentes">
+            <i class="fas fa-clock"></i> Pendentes
+          </button>
+          <button class="btn" onclick="filtrarPorStatus('pago')" id="btnPagos">
+            <i class="fas fa-check-circle"></i> Pagos
+          </button>
+          
+          <div class="filter-actions">
+            <button class="btn btn-warning" onclick="exportarParaCSV()" title="Exportar para Excel">
+              <i class="fas fa-file-excel"></i> Exportar
+            </button>
+            
+            <button class="btn btn-success" onclick="enviarLembretesDia()" title="Enviar lembretes para clientes de hoje">
+              <i class="fas fa-bell"></i> Lembretes
+            </button>
+          </div>
+        </div>
+
+        <div class="dashboard-cards">
+          <div class="card">
+            <div class="card-icon">
+              <i class="fas fa-wallet"></i>
+            </div>
+            <div class="card-value" id="receitaHoje">R$ 0</div>
+            <div class="card-title">Receita de Hoje</div>
+          </div>
+
+          <div class="card">
+            <div class="card-icon">
+              <i class="fas fa-calendar-week"></i>
+            </div>
+            <div class="card-value" id="receitaSemana">R$ 0</div>
+            <div class="card-title">Receita da Semana</div>
+          </div>
+
+          <div class="card">
+            <div class="card-icon">
+              <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="card-value" id="receitaMes">R$ 0</div>
+            <div class="card-title">Receita do Mês</div>
+          </div>
+
+          <div class="card">
+            <div class="card-icon">
+              <i class="fas fa-clipboard-list"></i>
+            </div>
+            <div class="card-value" id="totalAgendamentos">0</div>
+            <div class="card-title">Total de Agendamentos</div>
+          </div>
+        </div>
+
+        <h2><i class="fas fa-history"></i> Histórico de Agendamentos</h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Serviço</th>
+              <th>Data</th>
+              <th>Valor</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaAgendamentos">
+            <tr>
+              <td
+                colspan="6"
+                style="
+                  text-align: center;
+                  padding: 30px;
+                  color: var(--text-secondary);
+                "
+              >
+                Carregando...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Seção de Relatórios -->
+      <section id="relatorios" class="content-section">
+        <h2><i class="fas fa-chart-bar"></i> Relatório Mensal</h2>
+
+        <div class="form-group" style="max-width: 300px; margin-bottom: 20px">
+          <label for="mesRelatorio">Selecione o Mês</label>
+          <input type="month" id="mesRelatorio" />
+        </div>
+
+        <div class="dashboard-cards">
+          <div class="card">
+            <div class="card-icon">
+              <i class="fas fa-money-bill"></i>
+            </div>
+            <div class="card-value" id="receitaTotal">R$ 0</div>
+            <div class="card-title">Receita Total</div>
+          </div>
+
+          <div class="card">
+            <div class="card-icon">
+              <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="card-value" id="totalServicos">0</div>
+            <div class="card-title">Total de Serviços</div>
+          </div>
+
+          <div class="card">
+            <div class="card-icon">
+              <i class="fas fa-user-check"></i>
+            </div>
+            <div class="card-value" id="clientesAtendidos">0</div>
+            <div class="card-title">Clientes Atendidos</div>
+          </div>
+
+          <div class="card">
+            <div class="card-icon">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="card-value" id="ticketMedio">R$ 0</div>
+            <div class="card-title">Ticket Médio</div>
+          </div>
+        </div>
+
+        <h2><i class="fas fa-chart-pie"></i> Distribuição por Serviço</h2>
+
+        <div class="service-breakdown" id="breakdownServicos">
+          <div class="empty-state">
+            <i class="fas fa-chart-pie"></i>
+            <p>Carregando...</p>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <canvas id="graficoServicos" width="400" height="200"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
